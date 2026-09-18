@@ -1,0 +1,49 @@
+:root {
+  /* Brand — Royal Navy + Gold */
+  --color-navy-900: #0B1B3A;
+  --color-navy-800: #122B57;
+  --color-navy-700: #1B3A75;
+  --color-navy-100: #E6ECF7;
+
+  --color-gold-500: #D4AF37;
+  --color-gold-400: #E6C15A;
+  --color-gold-300: #F6D67A;
+  --color-gold-700: #8C6B1F;
+
+  --color-emerald-600: #046A38;
+  --color-emerald-400: #1E9E63;
+
+  --color-ivory: #F8F5EF;
+  --color-paper: #FFFDF8;
+  --color-ink: #0A1226;
+  --color-muted: #5B6478;
+  --color-danger: #B42318;
+  --color-warning: #B54708;
+
+  --font-display: "Cinzel", "Playfair Display", serif;
+  --font-body: "Inter", "Manrope", system-ui, -apple-system, sans-serif;
+  --font-tamil: "Noto Sans Tamil", "Anek Tamil", sans-serif;
+  --font-hindi: "Noto Sans Devanagari", sans-serif;
+
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
+
+  --shadow-sm: 0 1px 2px rgba(11, 27, 58, 0.08);
+  --shadow-md: 0 8px 24px rgba(11, 27, 58, 0.12);
+  --shadow-gold: 0 8px 28px rgba(212, 175, 55, 0.28);
+
+  --ease-royal: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 180ms;
+  --dur-med: 320ms;
+  --dur-slow: 600ms;
+}
+
+:root[lang="ta"] body { font-family: var(--font-tamil); }
+:root[lang="hi"] body { font-family: var(--font-hindi); }
+:root[lang="ta"] h1, :root[lang="ta"] h2, :root[lang="ta"] h3 { font-family: var(--font-tamil); }
+:root[lang="hi"] h1, :root[lang="hi"] h2, :root[lang="hi"] h3 { font-family: var(--font-hindi); }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
