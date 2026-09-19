@@ -3,6 +3,7 @@ import { AuthProvider } from "./context/AuthContext.jsx";
 import TopBar from "./components/TopBar.jsx";
 import Navbar from "./components/Navbar.jsx";
 import Footer from "./components/Footer.jsx";
+import Onboarding from "./components/Onboarding.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import AdminRoute from "./components/AdminRoute.jsx";
 import Home from "./pages/Home.jsx";
@@ -27,6 +28,9 @@ import AdminUsers from "./pages/admin/AdminUsers.jsx";
 export default function App() {
   return (
     <AuthProvider>
+      {/* First-visit onboarding overlay */}
+      <Onboarding />
+
       <a href="#main-content" className="skip-link">
         Skip to content
       </a>

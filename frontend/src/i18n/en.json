@@ -37,6 +37,36 @@
     "label": "Important Notice:",
     "body": "Vettri Scheme Matching is an independent information platform and is NOT affiliated with the Government of Tamil Nadu or any government department. Scheme details are sourced from official government portals and updated periodically. However, scheme rules, eligibility criteria, loan limits and interest rates may change without notice. Users must verify all information on the official source portal before applying. Vettri does not guarantee eligibility, approval, or fund disbursement, and is not a lender, financial advisor, or government agent."
   },
+  "onboarding": {
+    "skip": "Skip",
+    "next": "Next",
+    "back": "Back",
+    "get_started": "Get Started",
+
+    "schemes_title": "Find schemes you're eligible for",
+    "schemes_subtitle": "100+ verified Tamil Nadu and Central government schemes, all in one place.",
+    "schemes_points": [
+      "Search and filter by category",
+      "Read full eligibility and benefits",
+      "Official source link on every scheme"
+    ],
+
+    "match_title": "See your match score and why",
+    "match_subtitle": "We analyze your profile and rank schemes by how well they fit you.",
+    "match_points": [
+      "Personalised match percentage",
+      "Clear \"why this scheme\" reasoning",
+      "Missing information alerts"
+    ],
+
+    "afford_title": "Check loan affordability",
+    "afford_subtitle": "Estimate EMI, DSCR, and whether you can comfortably repay before you apply.",
+    "afford_points": [
+      "EMI and interest breakdown",
+      "Personalised document checklist",
+      "Available in English, தமிழ் and हिन्दी"
+    ]
+  },
   "profile": {
     "title": "Your Profile",
     "subtitle": "Tell us about yourself and your business so we can match you with the right schemes.",

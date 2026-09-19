@@ -1,7 +1,6 @@
 import { useTranslation } from "react-i18next";
-import tnEmblem from "../assets/tn-emblem.jpg";
-import cmPortrait from "../assets/cm-portrait.png";
-import vettriLogo from "../assets/vettri-logo.png";
+import sihLogo from "../assets/sih-logo.png";
+import collegeLogo from "../assets/college-logo.png";
 
 export default function TopBar() {
   const { t } = useTranslation();
@@ -22,44 +21,39 @@ export default function TopBar() {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          padding: "14px 24px",
+          padding: "12px 24px",
           gap: 20,
           flexWrap: "wrap",
         }}
       >
-        {/* LEFT — TN emblem + CM portrait + govt text */}
-        <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+        {/* LEFT — SIH logo + text */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 20,
+            flexWrap: "wrap",
+          }}
+        >
           <img
-            src={tnEmblem}
-            alt="Tamil Nadu Emblem"
-            className="topbar-emblem"
-            style={{
-              height: 90,
-              width: 90,
-              objectFit: "contain",
-              display: "block",
-              filter: "drop-shadow(0 4px 12px rgba(212, 175, 55, 0.35))",
-            }}
-          />
-
-          <img
-            src={cmPortrait}
-            alt="Hon'ble Chief Minister of Tamil Nadu"
+            src={sihLogo}
+            alt="Smart India Hackathon"
             className="topbar-cm"
             style={{
               height: 90,
               width: 90,
               borderRadius: "50%",
               objectFit: "cover",
-              objectPosition: "top center",
+              objectPosition: "center",
               border: "3px solid var(--color-gold-500)",
               display: "block",
               background: "#0B1B3A",
               boxShadow: "0 4px 16px rgba(212, 175, 55, 0.45)",
+              flexShrink: 0,
             }}
           />
 
-          <div style={{ lineHeight: 1.3 }} className="topbar-govt-text">
+          <div style={{ lineHeight: 1.35 }} className="topbar-govt-text">
             <div
               style={{
                 fontFamily: "var(--font-display)",
@@ -70,7 +64,7 @@ export default function TopBar() {
                 textShadow: "0 1px 2px rgba(0, 0, 0, 0.3)",
               }}
             >
-              {t("topbar.govt")}
+              Smart India Hackathon 2026
             </div>
             <div
               style={{
@@ -79,23 +73,24 @@ export default function TopBar() {
                 letterSpacing: 0.3,
               }}
             >
-              {t("topbar.tagline")}
+              Adhi College of Engineering and Technology
             </div>
           </div>
         </div>
 
-        {/* RIGHT — Vettri logo only (no box) */}
+        {/* RIGHT — College logo */}
         <img
-          src={vettriLogo}
-          alt="Vettri"
+          src={collegeLogo}
+          alt="Adhi College of Engineering and Technology"
           className="topbar-logo"
           style={{
-            height: 70,
+            height: 68,
             width: "auto",
             maxWidth: 260,
             objectFit: "contain",
             display: "block",
             filter: "drop-shadow(0 2px 10px rgba(246, 214, 122, 0.3))",
+            marginLeft: "auto",
           }}
         />
       </div>
