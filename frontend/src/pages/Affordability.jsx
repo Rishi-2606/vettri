@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
@@ -16,11 +16,39 @@ function parseFirstNumber(str) {
   return match ? parseFloat(match[1]) : null;
 }
 
-function parseMaxNumber(str) {
-  if (!str) return null;
-  const matches = String(str).match(/(\d+(?:\.\d+)?)/g);
-  if (!matches || matches.length === 0) return null;
-  return Math.max(...matches.map(parseFloat));
+// Parse "3 – 7 years", "5 years", "18 months", "As per bank" etc.
+// Returns { min, max, isRange, isFixed }
+function parseTenureRange(str) {
+  if (!str) return { min: 1, max: 30, isRange: false, isFixed: false };
+
+  const s = String(str).trim().toLowerCase();
+
+  // Months pattern
+  const monthsMatch = s.match(/^(\d+)\s*months?$/);
+  if (monthsMatch) {
+    const years = Math.max(1, Math.ceil(parseInt(monthsMatch[1], 10) / 12));
+    return { min: years, max: years, isRange: false, isFixed: true };
+  }
+
+  // Range: "3 – 7 years", "3 - 7 years", "3 to 7 years"
+  const rangeMatch = s.match(/(\d+)\s*(?:–|-|to)\s*(\d+)\s*years?/);
+  if (rangeMatch) {
+    const a = parseInt(rangeMatch[1], 10);
+    const b = parseInt(rangeMatch[2], 10);
+    const min = Math.max(1, Math.min(a, b));
+    const max = Math.max(a, b);
+    return { min, max, isRange: true, isFixed: false };
+  }
+
+  // Single: "5 years", "5 year"
+  const singleMatch = s.match(/^(\d+)\s*years?/);
+  if (singleMatch) {
+    const v = Math.max(1, parseInt(singleMatch[1], 10));
+    return { min: v, max: v, isRange: false, isFixed: true };
+  }
+
+  // Fallback for "As per bank", "N/A", "As per crop cycle", etc.
+  return { min: 1, max: 30, isRange: false, isFixed: false };
 }
 
 export default function Affordability() {
@@ -46,7 +74,7 @@ export default function Affordability() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Load scheme if provided
+  // Load scheme
   useEffect(() => {
     if (!schemeSlug) {
       setSchemeLoading(false);
@@ -57,12 +85,12 @@ export default function Affordability() {
       .then((s) => {
         setScheme(s);
         const rate = parseFirstNumber(s.interest_rate) || 10;
-        const maxTenure = parseMaxNumber(s.repayment_years) || 5;
+        const tenure = parseTenureRange(s.repayment_years);
         setForm((f) => ({
           ...f,
           loan_amount: String(s.max_loan || ""),
           interest_rate: String(rate),
-          tenure_years: String(Math.min(maxTenure, 30)),
+          tenure_years: String(tenure.isFixed ? tenure.max : tenure.max),
         }));
       })
       .catch(() => {})
@@ -84,6 +112,12 @@ export default function Affordability() {
       .catch(() => {});
   }, []);
 
+  // Parsed tenure range for current scheme
+  const tenureRange = useMemo(() => {
+    if (!scheme) return { min: 1, max: 30, isRange: false, isFixed: false };
+    return parseTenureRange(scheme.repayment_years);
+  }, [scheme]);
+
   function update(field, value) {
     setForm((f) => ({ ...f, [field]: value }));
     setError(null);
@@ -91,14 +125,29 @@ export default function Affordability() {
 
   async function onSubmit(e) {
     e.preventDefault();
-    setLoading(true);
     setError(null);
     setResult(null);
+
+    // Client-side tenure validation
+    const t = Number(form.tenure_years);
+    if (scheme) {
+      if (t < tenureRange.min || t > tenureRange.max) {
+        setError(
+          i18n.t("afford.err_tenure_range", {
+            min: tenureRange.min,
+            max: tenureRange.max,
+          })
+        );
+        return;
+      }
+    }
+
+    setLoading(true);
     try {
       const payload = {
         loan_amount: Number(form.loan_amount),
         interest_rate: Number(form.interest_rate),
-        tenure_years: Number(form.tenure_years),
+        tenure_years: t,
         moratorium_months: 0,
         monthly_income: Number(form.monthly_income),
         monthly_expenses: Number(form.monthly_expenses) || 0,
@@ -116,6 +165,23 @@ export default function Affordability() {
   const schemeName = scheme
     ? scheme.name?.[lang] || scheme.name?.en || scheme.short_name
     : null;
+
+  // Hint text for the tenure field
+  const tenureHint = useMemo(() => {
+    if (!scheme) return "";
+    if (tenureRange.isFixed) {
+      return i18n.t("afford.tenure_fixed_hint", {
+        years: tenureRange.max,
+      });
+    }
+    if (tenureRange.isRange) {
+      return i18n.t("afford.tenure_range_hint", {
+        min: tenureRange.min,
+        max: tenureRange.max,
+      });
+    }
+    return i18n.t("afford.tenure_flexible_hint");
+  }, [scheme, tenureRange, i18n]);
 
   return (
     <section
@@ -211,7 +277,11 @@ export default function Affordability() {
                 value={form.interest_rate}
                 onChange={(e) => update("interest_rate", e.target.value)}
                 readOnly={!!scheme}
-                style={scheme ? { background: "#F5F1E8", cursor: "not-allowed" } : undefined}
+                style={
+                  scheme
+                    ? { background: "#F5F1E8", cursor: "not-allowed" }
+                    : undefined
+                }
               />
               {scheme && (
                 <span className="field-hint">
@@ -223,19 +293,15 @@ export default function Affordability() {
             <Field label={t("afford.tenure_years")}>
               <input
                 type="number"
-                min="1"
-                max="30"
+                min={scheme ? tenureRange.min : 1}
+                max={scheme ? tenureRange.max : 30}
                 step="1"
                 required
                 value={form.tenure_years}
                 onChange={(e) => update("tenure_years", e.target.value)}
-                readOnly={!!scheme}
-                style={scheme ? { background: "#F5F1E8", cursor: "not-allowed" } : undefined}
               />
               {scheme && (
-                <span className="field-hint">
-                  {t("afford.tenure_from_scheme")}
-                </span>
+                <span className="field-hint">{tenureHint}</span>
               )}
             </Field>
           </div>
