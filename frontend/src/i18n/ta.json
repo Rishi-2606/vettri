@@ -156,6 +156,8 @@
     "interest_rate": "வட்டி விகிதம்",
     "subsidy": "மானியம்",
     "max_subsidy_amount": "அதிகபட்ச மானியத் தொகை",
+    "eligible_loan_amount": "தகுதியுள்ள கடன் தொகை",
+    "eligible_loan_hint": "உங்கள் திட்டச் செலவு {{projectCost}} மற்றும் இந்தத் திட்டத்தின் மானியத்தின் அடிப்படையில் கணக்கிடப்பட்டது.",
     "funding_source": "நிதி ஆதாரம்",
     "govt_department": "அரசு துறை",
     "govt_financial_institution": "அரசு நிதி நிறுவனம்",

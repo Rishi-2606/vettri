@@ -156,6 +156,8 @@
     "interest_rate": "ब्याज दर",
     "subsidy": "सब्सिडी",
     "max_subsidy_amount": "अधिकतम सब्सिडी राशि",
+    "eligible_loan_amount": "पात्र ऋण राशि",
+    "eligible_loan_hint": "आपकी परियोजना लागत {{projectCost}} और इस योजना की सब्सिडी के आधार पर गणना की गई।",
     "funding_source": "वित्त पोषण स्रोत",
     "govt_department": "सरकारी विभाग",
     "govt_financial_institution": "सरकारी वित्तीय संस्थान",

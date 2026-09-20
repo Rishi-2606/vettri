@@ -3,14 +3,11 @@ import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { api } from "../services/api.js";
+import { useAuth } from "../context/AuthContext.jsx";
 
 function getFundingSourceKey(dept) {
   if (!dept) return "govt_department";
-  const text = [
-    dept.en || "",
-    dept.ta || "",
-    dept.hi || "",
-  ]
+  const text = [dept.en || "", dept.ta || "", dept.hi || ""]
     .join(" ")
     .toLowerCase();
   if (text.includes("nabard") || text.includes("sidbi") || text.includes("mudra")) {
@@ -32,9 +29,11 @@ export default function SchemeDetails() {
   const { slug } = useParams();
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const lang = i18n.resolvedLanguage || "en";
 
   const [scheme, setScheme] = useState(null);
+  const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -56,6 +55,18 @@ export default function SchemeDetails() {
       cancelled = true;
     };
   }, [slug]);
+
+  // Fetch profile if user is logged in
+  useEffect(() => {
+    if (!user) {
+      setProfile(null);
+      return;
+    }
+    api
+      .getProfile()
+      .then((p) => setProfile(p))
+      .catch(() => setProfile(null));
+  }, [user]);
 
   if (loading) {
     return (
@@ -84,15 +95,41 @@ export default function SchemeDetails() {
     navigate("/recommendations");
   }
 
-  // Max subsidy amount (approximation: subsidy% of max loan)
+  // -------- Max Subsidy Amount (ceiling) --------
   const maxSubsidyAmount =
     scheme.max_loan && scheme.subsidy_percent
       ? Math.round((scheme.max_loan * scheme.subsidy_percent) / 100)
       : null;
 
-  const fundingKey = getFundingSourceKey(scheme.department);
+  // -------- Eligible Loan Amount (dynamic) --------
+  // Logic:
+  //   1. If user's project cost is known:
+  //      subsidy_for_project = min(project_cost * subsidy%, max_subsidy_amount)
+  //      loan_gap = project_cost - subsidy_for_project
+  //      eligible_loan = min(max_loan, loan_gap)
+  //   2. If no project cost, fall back to scheme's max loan
+  const eligibleLoanAmount = (() => {
+    if (!scheme.max_loan) return null;
 
-  // Affordability link now uses scheme slug only — page fetches details
+    const projectCost = Number(profile?.project_cost) || 0;
+
+    if (!projectCost || projectCost <= 0) {
+      return scheme.max_loan;
+    }
+
+    const subsidyPct = scheme.subsidy_percent || 0;
+    const subsidyForProject = subsidyPct
+      ? Math.min(
+          Math.round((projectCost * subsidyPct) / 100),
+          maxSubsidyAmount ?? Infinity
+        )
+      : 0;
+
+    const loanGap = Math.max(0, projectCost - subsidyForProject);
+    return Math.min(scheme.max_loan, loanGap);
+  })();
+
+  const fundingKey = getFundingSourceKey(scheme.department);
   const affordabilityUrl = `/affordability?scheme=${scheme.slug}`;
 
   return (
@@ -162,6 +199,13 @@ export default function SchemeDetails() {
               value={`₹${maxSubsidyAmount.toLocaleString("en-IN")}`}
             />
           ) : null}
+          {eligibleLoanAmount ? (
+            <InfoTile
+              label={t("scheme.eligible_loan_amount")}
+              value={`₹${eligibleLoanAmount.toLocaleString("en-IN")}`}
+              highlight
+            />
+          ) : null}
           {scheme.moratorium ? (
             <InfoTile
               label={t("scheme.moratorium")}
@@ -179,6 +223,21 @@ export default function SchemeDetails() {
             value={t(`scheme.${fundingKey}`)}
           />
         </div>
+
+        {eligibleLoanAmount && profile?.project_cost ? (
+          <p
+            style={{
+              fontSize: 12,
+              color: "var(--color-muted)",
+              marginTop: 12,
+              fontStyle: "italic",
+            }}
+          >
+            {t("scheme.eligible_loan_hint", {
+              projectCost: `₹${Number(profile.project_cost).toLocaleString("en-IN")}`,
+            })}
+          </p>
+        ) : null}
       </div>
 
       {/* Eligibility */}
@@ -284,26 +343,41 @@ export default function SchemeDetails() {
   );
 }
 
-function InfoTile({ label, value }) {
+function InfoTile({ label, value, highlight }) {
   return (
     <div
       style={{
-        background: "var(--color-paper)",
-        border: "1px solid #00000010",
+        background: highlight
+          ? "linear-gradient(135deg, rgba(212, 175, 55, 0.10), rgba(246, 214, 122, 0.18))"
+          : "var(--color-paper)",
+        border: highlight
+          ? "1px solid rgba(212, 175, 55, 0.55)"
+          : "1px solid #00000010",
         borderRadius: "var(--radius-md)",
         padding: "12px 14px",
+        boxShadow: highlight ? "0 4px 14px rgba(212, 175, 55, 0.18)" : "none",
       }}
     >
       <div
         style={{
           fontSize: 11,
-          color: "var(--color-muted)",
+          color: highlight ? "var(--color-gold-700)" : "var(--color-muted)",
           letterSpacing: 0.5,
+          fontWeight: highlight ? 700 : 500,
         }}
       >
         {label}
       </div>
-      <div style={{ fontSize: 15, fontWeight: 700, marginTop: 4 }}>{value}</div>
+      <div
+        style={{
+          fontSize: 15,
+          fontWeight: 700,
+          marginTop: 4,
+          color: highlight ? "var(--color-navy-900)" : "inherit",
+        }}
+      >
+        {value}
+      </div>
     </div>
   );
 }

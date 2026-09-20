@@ -156,6 +156,8 @@
     "interest_rate": "Interest Rate",
     "subsidy": "Subsidy",
     "max_subsidy_amount": "Max Subsidy Amount",
+    "eligible_loan_amount": "Eligible Loan Amount",
+    "eligible_loan_hint": "Calculated based on your project cost of {{projectCost}} and this scheme's subsidy.",
     "funding_source": "Funding Source",
     "govt_department": "Government Department",
     "govt_financial_institution": "Government Financial Institution",
