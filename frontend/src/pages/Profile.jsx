@@ -18,31 +18,45 @@ const EMPTY_PROFILE = {
   fundingRequired: "",
 };
 
-const CATEGORIES = ["General", "OBC", "BC", "MBC", "SC", "ST"];
-const EDUCATION = [
-  "Below 10th",
-  "10th Pass",
-  "12th Pass",
-  "ITI / Diploma",
-  "Undergraduate",
-  "Postgraduate",
-  "Other",
+// -------- Option lists --------
+// `value` = what goes to database (kept in English for AI matching)
+// `key`   = translation key used for display only
+
+const COMMUNITY_CATEGORIES = [
+  { value: "General", key: "general" },
+  { value: "OBC", key: "obc" },
+  { value: "BC", key: "bc" },
+  { value: "MBC", key: "mbc" },
+  { value: "SC", key: "sc" },
+  { value: "ST", key: "st" },
 ];
+
+const EDUCATION_LEVELS = [
+  { value: "Below 10th", key: "below_10th" },
+  { value: "10th Pass", key: "10th_pass" },
+  { value: "12th Pass", key: "12th_pass" },
+  { value: "ITI / Diploma", key: "iti_diploma" },
+  { value: "Undergraduate", key: "undergraduate" },
+  { value: "Postgraduate", key: "postgraduate" },
+  { value: "Other", key: "other" },
+];
+
 const BUSINESS_STATUS = [
-  { value: "new", key: "profile.businessStatus_new" },
-  { value: "existing", key: "profile.businessStatus_existing" },
+  { value: "new", key: "businessStatus_new" },
+  { value: "existing", key: "businessStatus_existing" },
 ];
+
 const BUSINESS_CATEGORIES = [
-  "Manufacturing",
-  "Agriculture / Agri-processing",
-  "Retail / Shop",
-  "Food / Restaurant",
-  "Textile / Garments",
-  "Handicrafts",
-  "Services",
-  "IT / Software",
-  "Transport",
-  "Other",
+  { value: "Manufacturing", key: "manufacturing" },
+  { value: "Agriculture / Agri-processing", key: "agriculture" },
+  { value: "Retail / Shop", key: "retail" },
+  { value: "Food / Restaurant", key: "food" },
+  { value: "Textile / Garments", key: "textile" },
+  { value: "Handicrafts", key: "handicrafts" },
+  { value: "Services", key: "services" },
+  { value: "IT / Software", key: "it" },
+  { value: "Transport", key: "transport" },
+  { value: "Other", key: "other" },
 ];
 
 export default function Profile() {
@@ -185,7 +199,7 @@ export default function Profile() {
       )}
 
       <form onSubmit={onSubmit} noValidate>
-        {/* PERSONAL */}
+        {/* ---------- PERSONAL ---------- */}
         <div className="form-section">
           <h2>{t("profile.section_personal")}</h2>
           <p className="hint">{t("profile.section_personal_hint")}</p>
@@ -230,9 +244,9 @@ export default function Profile() {
                 onChange={(e) => update("category", e.target.value)}
               >
                 <option value="">{t("profile.select_placeholder")}</option>
-                {CATEGORIES.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
+                {COMMUNITY_CATEGORIES.map((c) => (
+                  <option key={c.value} value={c.value}>
+                    {t(`profile.comcat_${c.key}`)}
                   </option>
                 ))}
               </select>
@@ -243,7 +257,7 @@ export default function Profile() {
           </div>
         </div>
 
-        {/* LOCATION */}
+        {/* ---------- LOCATION ---------- */}
         <div className="form-section">
           <h2>{t("profile.section_location")}</h2>
           <p className="hint">{t("profile.section_location_hint")}</p>
@@ -270,7 +284,7 @@ export default function Profile() {
           </div>
         </div>
 
-        {/* FINANCIAL */}
+        {/* ---------- FINANCIAL ---------- */}
         <div className="form-section">
           <h2>{t("profile.section_financial")}</h2>
           <p className="hint">{t("profile.section_financial_hint")}</p>
@@ -282,7 +296,7 @@ export default function Profile() {
                 name="annualIncome"
                 type="number"
                 min="0"
-                step="1000"
+                step="any"
                 value={form.annualIncome}
                 onChange={(e) => update("annualIncome", e.target.value)}
                 placeholder="₹ e.g. 250000"
@@ -301,9 +315,9 @@ export default function Profile() {
                 onChange={(e) => update("education", e.target.value)}
               >
                 <option value="">{t("profile.select_placeholder")}</option>
-                {EDUCATION.map((ed) => (
-                  <option key={ed} value={ed}>
-                    {ed}
+                {EDUCATION_LEVELS.map((ed) => (
+                  <option key={ed.value} value={ed.value}>
+                    {t(`profile.edu_${ed.key}`)}
                   </option>
                 ))}
               </select>
@@ -314,7 +328,7 @@ export default function Profile() {
           </div>
         </div>
 
-        {/* BUSINESS */}
+        {/* ---------- BUSINESS ---------- */}
         <div className="form-section">
           <h2>{t("profile.section_business")}</h2>
           <p className="hint">{t("profile.section_business_hint")}</p>
@@ -332,7 +346,7 @@ export default function Profile() {
                 <option value="">{t("profile.select_placeholder")}</option>
                 {BUSINESS_STATUS.map((s) => (
                   <option key={s.value} value={s.value}>
-                    {t(s.key)}
+                    {t(`profile.${s.key}`)}
                   </option>
                 ))}
               </select>
@@ -353,8 +367,8 @@ export default function Profile() {
               >
                 <option value="">{t("profile.select_placeholder")}</option>
                 {BUSINESS_CATEGORIES.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
+                  <option key={c.value} value={c.value}>
+                    {t(`profile.bizcat_${c.key}`)}
                   </option>
                 ))}
               </select>
@@ -385,7 +399,7 @@ export default function Profile() {
                 name="projectCost"
                 type="number"
                 min="0"
-                step="1000"
+                step="any"
                 value={form.projectCost}
                 onChange={(e) => update("projectCost", e.target.value)}
                 placeholder="₹ e.g. 500000"
@@ -404,7 +418,7 @@ export default function Profile() {
                 name="fundingRequired"
                 type="number"
                 min="0"
-                step="1000"
+                step="any"
                 value={form.fundingRequired}
                 onChange={(e) => update("fundingRequired", e.target.value)}
                 placeholder="₹ e.g. 300000"

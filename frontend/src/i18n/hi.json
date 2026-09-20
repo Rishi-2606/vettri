@@ -42,7 +42,6 @@
     "next": "आगे",
     "back": "पीछे",
     "get_started": "शुरू करें",
-
     "schemes_title": "आपके लिए पात्र योजनाएँ खोजें",
     "schemes_subtitle": "100+ सत्यापित तमिलनाडु और केंद्र सरकार की योजनाएँ, एक ही जगह।",
     "schemes_points": [
@@ -50,7 +49,6 @@
       "पूर्ण पात्रता और लाभ पढ़ें",
       "हर योजना पर आधिकारिक स्रोत लिंक"
     ],
-
     "match_title": "अपना मिलान स्कोर और कारण देखें",
     "match_subtitle": "हम आपकी प्रोफ़ाइल का विश्लेषण कर योजनाओं को रैंक करते हैं।",
     "match_points": [
@@ -58,7 +56,6 @@
       "स्पष्ट \"यह योजना क्यों\" कारण",
       "अनुपलब्ध जानकारी अलर्ट"
     ],
-
     "afford_title": "ऋण सामर्थ्य जाँचें",
     "afford_subtitle": "आवेदन से पहले EMI, DSCR और चुकाने की क्षमता का अनुमान लगाएँ।",
     "afford_points": [
@@ -105,7 +102,30 @@
     "err_age": "18 से 100 के बीच आयु दर्ज करें",
     "err_income": "मान्य आय दर्ज करें",
     "err_cost": "मान्य परियोजना लागत दर्ज करें",
-    "err_funding": "मान्य धनराशि दर्ज करें"
+    "err_funding": "मान्य धनराशि दर्ज करें",
+    "comcat_general": "सामान्य",
+    "comcat_obc": "OBC",
+    "comcat_bc": "BC",
+    "comcat_mbc": "MBC",
+    "comcat_sc": "SC",
+    "comcat_st": "ST",
+    "edu_below_10th": "10वीं से नीचे",
+    "edu_10th_pass": "10वीं पास",
+    "edu_12th_pass": "12वीं पास",
+    "edu_iti_diploma": "ITI / डिप्लोमा",
+    "edu_undergraduate": "स्नातक",
+    "edu_postgraduate": "स्नातकोत्तर",
+    "edu_other": "अन्य",
+    "bizcat_manufacturing": "विनिर्माण",
+    "bizcat_agriculture": "कृषि / कृषि प्रसंस्करण",
+    "bizcat_retail": "खुदरा / दुकान",
+    "bizcat_food": "खाना / रेस्टोरेंट",
+    "bizcat_textile": "वस्त्र / कपड़े",
+    "bizcat_handicrafts": "हस्तशिल्प",
+    "bizcat_services": "सेवाएँ",
+    "bizcat_it": "IT / सॉफ़्टवेयर",
+    "bizcat_transport": "परिवहन",
+    "bizcat_other": "अन्य"
   },
   "schemes": {
     "title": "सरकारी योजनाएँ",

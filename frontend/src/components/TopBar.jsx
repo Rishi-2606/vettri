@@ -26,7 +26,7 @@ export default function TopBar() {
           flexWrap: "wrap",
         }}
       >
-        {/* LEFT — SIH logo + text */}
+        {/* LEFT — SIH logo (circle) + text */}
         <div
           style={{
             display: "flex",
@@ -78,21 +78,37 @@ export default function TopBar() {
           </div>
         </div>
 
-        {/* RIGHT — College logo */}
-        <img
-          src={collegeLogo}
-          alt="Adhi College of Engineering and Technology"
-          className="topbar-logo"
+        {/* RIGHT — College logo in glowing gold rectangular box */}
+        <div
           style={{
-            height: 68,
-            width: "auto",
-            maxWidth: 260,
-            objectFit: "contain",
-            display: "block",
-            filter: "drop-shadow(0 2px 10px rgba(246, 214, 122, 0.3))",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "8px 16px",
+            background: "rgba(255, 253, 248, 0.06)",
+            border: "2px solid var(--color-gold-500)",
+            borderRadius: 10,
+            boxShadow:
+              "0 0 12px rgba(212, 175, 55, 0.65), 0 0 28px rgba(212, 175, 55, 0.35), inset 0 0 12px rgba(212, 175, 55, 0.15)",
             marginLeft: "auto",
+            transition: "box-shadow 300ms ease",
+            animation: "goldGlowPulse 3s ease-in-out infinite",
           }}
-        />
+        >
+          <img
+            src={collegeLogo}
+            alt="Adhi College of Engineering and Technology"
+            className="topbar-logo"
+            style={{
+              height: 60,
+              width: "auto",
+              maxWidth: 220,
+              objectFit: "contain",
+              display: "block",
+              filter: "drop-shadow(0 2px 6px rgba(0, 0, 0, 0.35))",
+            }}
+          />
+        </div>
       </div>
     </div>
   );

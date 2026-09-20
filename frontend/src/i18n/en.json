@@ -42,7 +42,6 @@
     "next": "Next",
     "back": "Back",
     "get_started": "Get Started",
-
     "schemes_title": "Find schemes you're eligible for",
     "schemes_subtitle": "100+ verified Tamil Nadu and Central government schemes, all in one place.",
     "schemes_points": [
@@ -50,7 +49,6 @@
       "Read full eligibility and benefits",
       "Official source link on every scheme"
     ],
-
     "match_title": "See your match score and why",
     "match_subtitle": "We analyze your profile and rank schemes by how well they fit you.",
     "match_points": [
@@ -58,7 +56,6 @@
       "Clear \"why this scheme\" reasoning",
       "Missing information alerts"
     ],
-
     "afford_title": "Check loan affordability",
     "afford_subtitle": "Estimate EMI, DSCR, and whether you can comfortably repay before you apply.",
     "afford_points": [
@@ -105,7 +102,30 @@
     "err_age": "Enter age between 18 and 100",
     "err_income": "Enter a valid income",
     "err_cost": "Enter a valid project cost",
-    "err_funding": "Enter a valid funding amount"
+    "err_funding": "Enter a valid funding amount",
+    "comcat_general": "General",
+    "comcat_obc": "OBC",
+    "comcat_bc": "BC",
+    "comcat_mbc": "MBC",
+    "comcat_sc": "SC",
+    "comcat_st": "ST",
+    "edu_below_10th": "Below 10th",
+    "edu_10th_pass": "10th Pass",
+    "edu_12th_pass": "12th Pass",
+    "edu_iti_diploma": "ITI / Diploma",
+    "edu_undergraduate": "Undergraduate",
+    "edu_postgraduate": "Postgraduate",
+    "edu_other": "Other",
+    "bizcat_manufacturing": "Manufacturing",
+    "bizcat_agriculture": "Agriculture / Agri-processing",
+    "bizcat_retail": "Retail / Shop",
+    "bizcat_food": "Food / Restaurant",
+    "bizcat_textile": "Textile / Garments",
+    "bizcat_handicrafts": "Handicrafts",
+    "bizcat_services": "Services",
+    "bizcat_it": "IT / Software",
+    "bizcat_transport": "Transport",
+    "bizcat_other": "Other"
   },
   "schemes": {
     "title": "Government Schemes",

@@ -1307,3 +1307,27 @@ nav a:hover::before { transform: scaleX(1); }
     animation: none;
   }
 }
+/* ---------- Gold Glow Pulse for College Logo Box ---------- */
+@keyframes goldGlowPulse {
+  0%, 100% {
+    box-shadow:
+      0 0 12px rgba(212, 175, 55, 0.65),
+      0 0 28px rgba(212, 175, 55, 0.35),
+      inset 0 0 12px rgba(212, 175, 55, 0.15);
+    border-color: var(--color-gold-500);
+  }
+  50% {
+    box-shadow:
+      0 0 20px rgba(212, 175, 55, 0.9),
+      0 0 40px rgba(212, 175, 55, 0.55),
+      inset 0 0 18px rgba(212, 175, 55, 0.25);
+    border-color: var(--color-gold-300);
+  }
+}
+
+/* Reduced motion — no pulse */
+@media (prefers-reduced-motion: reduce) {
+  @keyframes goldGlowPulse {
+    0%, 100% { opacity: 1; }
+  }
+}
