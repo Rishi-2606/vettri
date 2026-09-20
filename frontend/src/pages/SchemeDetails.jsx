@@ -4,6 +4,30 @@ import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { api } from "../services/api.js";
 
+function getFundingSourceKey(dept) {
+  if (!dept) return "govt_department";
+  const text = [
+    dept.en || "",
+    dept.ta || "",
+    dept.hi || "",
+  ]
+    .join(" ")
+    .toLowerCase();
+  if (text.includes("nabard") || text.includes("sidbi") || text.includes("mudra")) {
+    return "govt_financial_institution";
+  }
+  if (
+    text.includes("ministry") ||
+    text.includes("department") ||
+    text.includes("government") ||
+    text.includes("govt") ||
+    text.includes("board")
+  ) {
+    return "govt_department";
+  }
+  return "govt_department";
+}
+
 export default function SchemeDetails() {
   const { slug } = useParams();
   const { t, i18n } = useTranslation();
@@ -60,17 +84,16 @@ export default function SchemeDetails() {
     navigate("/recommendations");
   }
 
-  // Build affordability link with prefilled query params
-  const affordabilityUrl = (() => {
-    const params = new URLSearchParams();
-    if (scheme.max_loan) params.set("loan", scheme.max_loan);
-    if (scheme.interest_rate) {
-      const match = scheme.interest_rate.match(/(\d+(?:\.\d+)?)/);
-      if (match) params.set("rate", match[1]);
-    }
-    const qs = params.toString();
-    return `/affordability${qs ? `?${qs}` : ""}`;
-  })();
+  // Max subsidy amount (approximation: subsidy% of max loan)
+  const maxSubsidyAmount =
+    scheme.max_loan && scheme.subsidy_percent
+      ? Math.round((scheme.max_loan * scheme.subsidy_percent) / 100)
+      : null;
+
+  const fundingKey = getFundingSourceKey(scheme.department);
+
+  // Affordability link now uses scheme slug only — page fetches details
+  const affordabilityUrl = `/affordability?scheme=${scheme.slug}`;
 
   return (
     <section
@@ -133,6 +156,12 @@ export default function SchemeDetails() {
               value={`${scheme.subsidy_percent}%`}
             />
           ) : null}
+          {maxSubsidyAmount ? (
+            <InfoTile
+              label={t("scheme.max_subsidy_amount")}
+              value={`₹${maxSubsidyAmount.toLocaleString("en-IN")}`}
+            />
+          ) : null}
           {scheme.moratorium ? (
             <InfoTile
               label={t("scheme.moratorium")}
@@ -145,6 +174,10 @@ export default function SchemeDetails() {
               value={scheme.repayment_years}
             />
           ) : null}
+          <InfoTile
+            label={t("scheme.funding_source")}
+            value={t(`scheme.${fundingKey}`)}
+          />
         </div>
       </div>
 

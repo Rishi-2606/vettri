@@ -1331,3 +1331,90 @@ nav a:hover::before { transform: scaleX(1); }
     0%, 100% { opacity: 1; }
   }
 }
+/* ---------- Affordability: scheme banner + reasons ---------- */
+.afford-scheme-banner {
+  background: linear-gradient(135deg, rgba(11, 27, 58, 0.04), rgba(212, 175, 55, 0.08));
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  border-left: 5px solid var(--color-gold-500);
+  border-radius: var(--radius-lg);
+  padding: 18px 22px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 18px rgba(212, 175, 55, 0.12);
+}
+
+.afford-scheme-short {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  color: var(--color-gold-700);
+  text-transform: uppercase;
+}
+
+.afford-scheme-name {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-navy-900);
+  margin: 4px 0 12px;
+}
+
+.afford-scheme-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  font-size: 13px;
+}
+
+.afford-scheme-stats > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.afford-scheme-stats span {
+  color: var(--color-muted);
+  font-size: 11px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.afford-scheme-stats strong {
+  color: var(--color-navy-900);
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.field-hint {
+  font-size: 11px;
+  color: var(--color-gold-700);
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  margin-top: 2px;
+}
+
+.afford-reasons {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.afford-reasons li {
+  position: relative;
+  padding-left: 22px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--color-ink);
+}
+
+.afford-reasons li::before {
+  content: "•";
+  position: absolute;
+  left: 8px;
+  top: 0;
+  color: var(--color-gold-700);
+  font-weight: 900;
+  font-size: 16px;
+}

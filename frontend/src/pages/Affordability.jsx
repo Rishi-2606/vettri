@@ -10,15 +10,33 @@ const VERDICT_STYLES = {
   risky: { bg: "#FDECEC", color: "#B42318", border: "#B42318", icon: "⛔" },
 };
 
+function parseFirstNumber(str) {
+  if (!str) return null;
+  const match = String(str).match(/(\d+(?:\.\d+)?)/);
+  return match ? parseFloat(match[1]) : null;
+}
+
+function parseMaxNumber(str) {
+  if (!str) return null;
+  const matches = String(str).match(/(\d+(?:\.\d+)?)/g);
+  if (!matches || matches.length === 0) return null;
+  return Math.max(...matches.map(parseFloat));
+}
+
 export default function Affordability() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [searchParams] = useSearchParams();
+  const schemeSlug = searchParams.get("scheme");
+
+  const lang = i18n.resolvedLanguage || "en";
+
+  const [scheme, setScheme] = useState(null);
+  const [schemeLoading, setSchemeLoading] = useState(!!schemeSlug);
 
   const [form, setForm] = useState({
-    loan_amount: searchParams.get("loan") || "",
-    interest_rate: searchParams.get("rate") || "10",
+    loan_amount: "",
+    interest_rate: "10",
     tenure_years: "5",
-    moratorium_months: "0",
     monthly_income: "",
     monthly_expenses: "",
     existing_obligations: "0",
@@ -27,6 +45,29 @@ export default function Affordability() {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  // Load scheme if provided
+  useEffect(() => {
+    if (!schemeSlug) {
+      setSchemeLoading(false);
+      return;
+    }
+    api
+      .getScheme(schemeSlug)
+      .then((s) => {
+        setScheme(s);
+        const rate = parseFirstNumber(s.interest_rate) || 10;
+        const maxTenure = parseMaxNumber(s.repayment_years) || 5;
+        setForm((f) => ({
+          ...f,
+          loan_amount: String(s.max_loan || ""),
+          interest_rate: String(rate),
+          tenure_years: String(Math.min(maxTenure, 30)),
+        }));
+      })
+      .catch(() => {})
+      .finally(() => setSchemeLoading(false));
+  }, [schemeSlug]);
 
   // Pre-fill monthly income from profile
   useEffect(() => {
@@ -58,7 +99,7 @@ export default function Affordability() {
         loan_amount: Number(form.loan_amount),
         interest_rate: Number(form.interest_rate),
         tenure_years: Number(form.tenure_years),
-        moratorium_months: Number(form.moratorium_months) || 0,
+        moratorium_months: 0,
         monthly_income: Number(form.monthly_income),
         monthly_expenses: Number(form.monthly_expenses) || 0,
         existing_obligations: Number(form.existing_obligations) || 0,
@@ -71,6 +112,10 @@ export default function Affordability() {
       setLoading(false);
     }
   }
+
+  const schemeName = scheme
+    ? scheme.name?.[lang] || scheme.name?.en || scheme.short_name
+    : null;
 
   return (
     <section
@@ -89,11 +134,48 @@ export default function Affordability() {
         style={{
           color: "var(--color-muted)",
           marginBottom: 24,
-          maxWidth: 620,
+          maxWidth: 640,
         }}
       >
         {t("afford.subtitle")}
       </p>
+
+      {/* Scheme info banner */}
+      {schemeLoading ? (
+        <p style={{ color: "var(--color-muted)" }}>Loading scheme...</p>
+      ) : scheme ? (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="afford-scheme-banner"
+        >
+          <div className="afford-scheme-short">{scheme.short_name}</div>
+          <div className="afford-scheme-name">{schemeName}</div>
+          <div className="afford-scheme-stats">
+            <div>
+              <span>{t("afford.scheme_max_loan")}</span>
+              <strong>
+                ₹{(scheme.max_loan || 0).toLocaleString("en-IN")}
+              </strong>
+            </div>
+            <div>
+              <span>{t("afford.scheme_rate")}</span>
+              <strong>{scheme.interest_rate || "—"}</strong>
+            </div>
+            <div>
+              <span>{t("afford.scheme_tenure")}</span>
+              <strong>{scheme.repayment_years || "—"}</strong>
+            </div>
+            {scheme.subsidy_percent > 0 && (
+              <div>
+                <span>{t("afford.scheme_subsidy")}</span>
+                <strong>{scheme.subsidy_percent}%</strong>
+              </div>
+            )}
+          </div>
+        </motion.div>
+      ) : null}
 
       <div className="afford-layout">
         {/* FORM */}
@@ -118,6 +200,7 @@ export default function Affordability() {
                 placeholder="e.g. 500000"
               />
             </Field>
+
             <Field label={t("afford.interest_rate") + " (%)"}>
               <input
                 type="number"
@@ -127,8 +210,16 @@ export default function Affordability() {
                 required
                 value={form.interest_rate}
                 onChange={(e) => update("interest_rate", e.target.value)}
+                readOnly={!!scheme}
+                style={scheme ? { background: "#F5F1E8", cursor: "not-allowed" } : undefined}
               />
+              {scheme && (
+                <span className="field-hint">
+                  {t("afford.rate_from_scheme")}
+                </span>
+              )}
             </Field>
+
             <Field label={t("afford.tenure_years")}>
               <input
                 type="number"
@@ -138,17 +229,14 @@ export default function Affordability() {
                 required
                 value={form.tenure_years}
                 onChange={(e) => update("tenure_years", e.target.value)}
+                readOnly={!!scheme}
+                style={scheme ? { background: "#F5F1E8", cursor: "not-allowed" } : undefined}
               />
-            </Field>
-            <Field label={t("afford.moratorium_months")}>
-              <input
-                type="number"
-                min="0"
-                max="24"
-                step="1"
-                value={form.moratorium_months}
-                onChange={(e) => update("moratorium_months", e.target.value)}
-              />
+              {scheme && (
+                <span className="field-hint">
+                  {t("afford.tenure_from_scheme")}
+                </span>
+              )}
             </Field>
           </div>
 
@@ -284,6 +372,22 @@ export default function Affordability() {
                 </div>
               </div>
 
+              {/* Reasons */}
+              {result.reasons && result.reasons.length > 0 && (
+                <div className="card" style={{ padding: 20 }}>
+                  <h3 style={{ fontSize: 14, marginBottom: 12 }}>
+                    {t("afford.why_result")}
+                  </h3>
+                  <ul className="afford-reasons">
+                    {result.reasons.map((r, i) => (
+                      <li key={i}>
+                        {t(`afford.${r.key}`, { value: r.value })}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
               {/* Key numbers */}
               <div className="card" style={{ padding: 20 }}>
                 <ResultRow
@@ -320,32 +424,10 @@ export default function Affordability() {
                   label={t("afford.total_interest")}
                   value={`₹${result.total_interest.toLocaleString("en-IN")}`}
                 />
-                {result.moratorium_interest > 0 && (
-                  <ResultRow
-                    label={t("afford.moratorium_interest")}
-                    value={`₹${result.moratorium_interest.toLocaleString("en-IN")}`}
-                  />
-                )}
                 <ResultRow
                   label={t("afford.tenure_months")}
                   value={result.tenure_months}
                 />
-              </div>
-
-              {/* Tips based on verdict */}
-              <div
-                className="card"
-                style={{
-                  padding: 16,
-                  fontSize: 13,
-                  color: "var(--color-muted)",
-                }}
-              >
-                {result.verdict === "comfortable" &&
-                  t("afford.tip_comfortable")}
-                {result.verdict === "manageable" &&
-                  t("afford.tip_manageable")}
-                {result.verdict === "risky" && t("afford.tip_risky")}
               </div>
             </motion.div>
           )}
