@@ -16,21 +16,16 @@ function parseFirstNumber(str) {
   return match ? parseFloat(match[1]) : null;
 }
 
-// Parse "3 – 7 years", "5 years", "18 months", "As per bank" etc.
-// Returns { min, max, isRange, isFixed }
 function parseTenureRange(str) {
   if (!str) return { min: 1, max: 30, isRange: false, isFixed: false };
-
   const s = String(str).trim().toLowerCase();
 
-  // Months pattern
   const monthsMatch = s.match(/^(\d+)\s*months?$/);
   if (monthsMatch) {
     const years = Math.max(1, Math.ceil(parseInt(monthsMatch[1], 10) / 12));
     return { min: years, max: years, isRange: false, isFixed: true };
   }
 
-  // Range: "3 – 7 years", "3 - 7 years", "3 to 7 years"
   const rangeMatch = s.match(/(\d+)\s*(?:–|-|to)\s*(\d+)\s*years?/);
   if (rangeMatch) {
     const a = parseInt(rangeMatch[1], 10);
@@ -40,14 +35,12 @@ function parseTenureRange(str) {
     return { min, max, isRange: true, isFixed: false };
   }
 
-  // Single: "5 years", "5 year"
   const singleMatch = s.match(/^(\d+)\s*years?/);
   if (singleMatch) {
     const v = Math.max(1, parseInt(singleMatch[1], 10));
     return { min: v, max: v, isRange: false, isFixed: true };
   }
 
-  // Fallback for "As per bank", "N/A", "As per crop cycle", etc.
   return { min: 1, max: 30, isRange: false, isFixed: false };
 }
 
@@ -55,7 +48,6 @@ export default function Affordability() {
   const { t, i18n } = useTranslation();
   const [searchParams] = useSearchParams();
   const schemeSlug = searchParams.get("scheme");
-
   const lang = i18n.resolvedLanguage || "en";
 
   const [scheme, setScheme] = useState(null);
@@ -74,7 +66,6 @@ export default function Affordability() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Load scheme
   useEffect(() => {
     if (!schemeSlug) {
       setSchemeLoading(false);
@@ -90,14 +81,13 @@ export default function Affordability() {
           ...f,
           loan_amount: String(s.max_loan || ""),
           interest_rate: String(rate),
-          tenure_years: String(tenure.isFixed ? tenure.max : tenure.max),
+          tenure_years: String(tenure.max),
         }));
       })
       .catch(() => {})
       .finally(() => setSchemeLoading(false));
   }, [schemeSlug]);
 
-  // Pre-fill monthly income from profile
   useEffect(() => {
     api
       .getProfile()
@@ -112,11 +102,22 @@ export default function Affordability() {
       .catch(() => {});
   }, []);
 
-  // Parsed tenure range for current scheme
   const tenureRange = useMemo(() => {
     if (!scheme) return { min: 1, max: 30, isRange: false, isFixed: false };
     return parseTenureRange(scheme.repayment_years);
   }, [scheme]);
+
+  // Dynamic subsidy amount (only if scheme has subsidy)
+  const subsidyAmount = useMemo(() => {
+    if (!scheme || !scheme.subsidy_percent) return 0;
+    const loan = Number(form.loan_amount) || 0;
+    if (!loan) return 0;
+    // Cap subsidy at max_subsidy_amount if derived
+    const raw = (loan * scheme.subsidy_percent) / 100;
+    return Math.round(raw);
+  }, [scheme, form.loan_amount]);
+
+  const hasSubsidy = scheme && scheme.subsidy_percent > 0;
 
   function update(field, value) {
     setForm((f) => ({ ...f, [field]: value }));
@@ -128,7 +129,6 @@ export default function Affordability() {
     setError(null);
     setResult(null);
 
-    // Client-side tenure validation
     const t = Number(form.tenure_years);
     if (scheme) {
       if (t < tenureRange.min || t > tenureRange.max) {
@@ -154,7 +154,12 @@ export default function Affordability() {
         existing_obligations: Number(form.existing_obligations) || 0,
       };
       const res = await api.affordability(payload);
-      setResult(res);
+      // Attach subsidy to result
+      setResult({
+        ...res,
+        subsidy_amount: subsidyAmount,
+        subsidy_percent: scheme?.subsidy_percent || 0,
+      });
     } catch (err) {
       setError(err.message);
     } finally {
@@ -166,13 +171,10 @@ export default function Affordability() {
     ? scheme.name?.[lang] || scheme.name?.en || scheme.short_name
     : null;
 
-  // Hint text for the tenure field
   const tenureHint = useMemo(() => {
     if (!scheme) return "";
     if (tenureRange.isFixed) {
-      return i18n.t("afford.tenure_fixed_hint", {
-        years: tenureRange.max,
-      });
+      return i18n.t("afford.tenure_fixed_hint", { years: tenureRange.max });
     }
     if (tenureRange.isRange) {
       return i18n.t("afford.tenure_range_hint", {
@@ -182,6 +184,9 @@ export default function Affordability() {
     }
     return i18n.t("afford.tenure_flexible_hint");
   }, [scheme, tenureRange, i18n]);
+
+  // Net cost after subsidy
+  const netCost = result ? Math.max(0, result.total_payment - (result.subsidy_amount || 0)) : 0;
 
   return (
     <section
@@ -196,17 +201,11 @@ export default function Affordability() {
       >
         {t("afford.title")}
       </motion.h1>
-      <p
-        style={{
-          color: "var(--color-muted)",
-          marginBottom: 24,
-          maxWidth: 640,
-        }}
-      >
+      <p style={{ color: "var(--color-muted)", marginBottom: 24, maxWidth: 640 }}>
         {t("afford.subtitle")}
       </p>
 
-      {/* Scheme info banner */}
+      {/* Scheme banner */}
       {schemeLoading ? (
         <p style={{ color: "var(--color-muted)" }}>Loading scheme...</p>
       ) : scheme ? (
@@ -221,9 +220,7 @@ export default function Affordability() {
           <div className="afford-scheme-stats">
             <div>
               <span>{t("afford.scheme_max_loan")}</span>
-              <strong>
-                ₹{(scheme.max_loan || 0).toLocaleString("en-IN")}
-              </strong>
+              <strong>₹{(scheme.max_loan || 0).toLocaleString("en-IN")}</strong>
             </div>
             <div>
               <span>{t("afford.scheme_rate")}</span>
@@ -277,16 +274,10 @@ export default function Affordability() {
                 value={form.interest_rate}
                 onChange={(e) => update("interest_rate", e.target.value)}
                 readOnly={!!scheme}
-                style={
-                  scheme
-                    ? { background: "#F5F1E8", cursor: "not-allowed" }
-                    : undefined
-                }
+                style={scheme ? { background: "#F5F1E8", cursor: "not-allowed" } : undefined}
               />
               {scheme && (
-                <span className="field-hint">
-                  {t("afford.rate_from_scheme")}
-                </span>
+                <span className="field-hint">{t("afford.rate_from_scheme")}</span>
               )}
             </Field>
 
@@ -300,10 +291,31 @@ export default function Affordability() {
                 value={form.tenure_years}
                 onChange={(e) => update("tenure_years", e.target.value)}
               />
-              {scheme && (
-                <span className="field-hint">{tenureHint}</span>
-              )}
+              {scheme && <span className="field-hint">{tenureHint}</span>}
             </Field>
+
+            {/* NEW: Subsidy field (only if scheme has subsidy) */}
+            {hasSubsidy && (
+              <Field label={t("afford.subsidy_amount") + " (₹)"}>
+                <input
+                  type="text"
+                  readOnly
+                  value={subsidyAmount.toLocaleString("en-IN")}
+                  style={{
+                    background: "linear-gradient(135deg, rgba(212, 175, 55, 0.10), rgba(246, 214, 122, 0.18))",
+                    cursor: "not-allowed",
+                    fontWeight: 700,
+                    color: "var(--color-gold-700)",
+                    border: "1px solid rgba(212, 175, 55, 0.45)",
+                  }}
+                />
+                <span className="field-hint">
+                  {t("afford.subsidy_from_scheme", {
+                    percent: scheme.subsidy_percent,
+                  })}
+                </span>
+              </Field>
+            )}
           </div>
 
           <h2 style={{ fontSize: 16, marginTop: 24 }}>
@@ -337,9 +349,7 @@ export default function Affordability() {
                 min="0"
                 step="any"
                 value={form.existing_obligations}
-                onChange={(e) =>
-                  update("existing_obligations", e.target.value)
-                }
+                onChange={(e) => update("existing_obligations", e.target.value)}
                 placeholder="e.g. 0"
               />
             </Field>
@@ -355,11 +365,7 @@ export default function Affordability() {
             type="submit"
             className="btn btn-primary admin-btn-glow"
             disabled={loading}
-            style={{
-              marginTop: 20,
-              width: "100%",
-              justifyContent: "center",
-            }}
+            style={{ marginTop: 20, width: "100%", justifyContent: "center" }}
           >
             {loading ? "..." : t("afford.calculate")}
           </button>
@@ -408,9 +414,7 @@ export default function Affordability() {
                   borderLeft: `5px solid ${VERDICT_STYLES[result.verdict].border}`,
                 }}
               >
-                <div
-                  style={{ display: "flex", alignItems: "center", gap: 12 }}
-                >
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                   <span style={{ fontSize: 32 }}>
                     {VERDICT_STYLES[result.verdict].icon}
                   </span>
@@ -446,9 +450,7 @@ export default function Affordability() {
                   </h3>
                   <ul className="afford-reasons">
                     {result.reasons.map((r, i) => (
-                      <li key={i}>
-                        {t(`afford.${r.key}`, { value: r.value })}
-                      </li>
+                      <li key={i}>{t(`afford.${r.key}`, { value: r.value })}</li>
                     ))}
                   </ul>
                 </div>
@@ -486,6 +488,20 @@ export default function Affordability() {
                   label={t("afford.total_payment")}
                   value={`₹${result.total_payment.toLocaleString("en-IN")}`}
                 />
+                {result.subsidy_amount > 0 && (
+                  <ResultRow
+                    label={t("afford.subsidy_benefit")}
+                    value={`− ₹${result.subsidy_amount.toLocaleString("en-IN")}`}
+                    highlight
+                  />
+                )}
+                {result.subsidy_amount > 0 && (
+                  <ResultRow
+                    label={t("afford.net_cost_after_subsidy")}
+                    value={`₹${netCost.toLocaleString("en-IN")}`}
+                    bold
+                  />
+                )}
                 <ResultRow
                   label={t("afford.total_interest")}
                   value={`₹${result.total_interest.toLocaleString("en-IN")}`}
@@ -518,7 +534,7 @@ function Field({ label, children }) {
   );
 }
 
-function ResultRow({ label, value, bold, positive }) {
+function ResultRow({ label, value, bold, positive, highlight }) {
   return (
     <div
       style={{
@@ -530,16 +546,25 @@ function ResultRow({ label, value, bold, positive }) {
         fontSize: 14,
       }}
     >
-      <span style={{ color: "var(--color-muted)" }}>{label}</span>
       <span
         style={{
-          fontWeight: bold ? 700 : 500,
+          color: highlight ? "var(--color-gold-700)" : "var(--color-muted)",
+          fontWeight: highlight ? 600 : 400,
+        }}
+      >
+        {label}
+      </span>
+      <span
+        style={{
+          fontWeight: bold ? 700 : highlight ? 600 : 500,
           color:
-            positive === false
-              ? "#B42318"
-              : positive === true
-                ? "#046A38"
-                : "inherit",
+            highlight
+              ? "var(--color-gold-700)"
+              : positive === false
+                ? "#B42318"
+                : positive === true
+                  ? "#046A38"
+                  : "inherit",
         }}
       >
         {value}
